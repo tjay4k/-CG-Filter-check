@@ -122,7 +122,7 @@ async def fetch_roblox_user_data(session: aiohttp.ClientSession, username: str, 
                 await report_error(interaction, f"Failed to fetch inventory visibility for Roblox ID {user_id}: status {res.status}", level="error")
                 return None
             data = await res.json()
-            if not data.get("canViewInventory", False):
+            if not data.get("canView", False):
                 await report_error(interaction, f"Roblox user **{username} ({user_id})** has their inventory set to private.", user_message=f"❌ Roblox user **{username} ({user_id})** has their inventory set to private.", level="error")
                 return None
 
