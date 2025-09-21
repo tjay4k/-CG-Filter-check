@@ -117,6 +117,15 @@ async def fetch_roblox_user_data(session: aiohttp.ClientSession, username: str, 
                 created_str.replace("Z", "+00:00"))
             account_age_days = (datetime.now(timezone.utc) - created_date).days
 
+        async with session.get(f"https://inventory.roblox.com/v1/users/{user_id}/can-view-inventory", timeout=timeout) as res:
+            if res.status != 200:
+                await report_error(interaction, f"Failed to fetch inventory visibility for Roblox ID {user_id}: status {res.status}", level="error")
+                return None
+            data = await res.json()
+            if not data.get("canViewInventory", False):
+                await report_error(interaction, f"Roblox user **{username} ({user_id})** has their inventory set to private.", user_message=f"❌ Roblox user **{username} ({user_id})** has their inventory set to private.", level="error")
+                return None
+
         # Fetch social stats
         followers = await fetch_social_count(session, user_id, "followers", timeout, interaction)
         following = await fetch_social_count(session, user_id, "followings", timeout, interaction)
