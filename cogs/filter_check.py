@@ -31,8 +31,10 @@ TRELLO_TOKEN = os.getenv("TRELLO_TOKEN")
 TRELLO_BOARD_ID = "5bbOw9f8"
 MAJOR_BLACKLIST_CATEGORIES = [
     "Universal Blacklists",
-    "Cuff Division Blacklist",
-    "Command Blacklists"
+    "Cuff Division Blacklist"
+]
+DENY_BLACKLIST_CATEGORIES = [
+    "Coruscant Guard"
 ]
 SKIP_CATEGORIES = ["Appealed/Expired"]
 
@@ -443,8 +445,10 @@ class FilterCheck(commands.Cog):
                 await interaction.edit_original_response(content="✅ Check completed and logged.")
                 return
 
-            if blacklists:
-                await self.send_check_result(user_data, reason=f"BLACKLIST DETECTED: {', '.join(blacklists)}", interaction=interaction)
+            deny_blacklists = [bl for bl in blacklists if any(
+                deny_cat.lower() in bl.lower() for deny_cat in DENY_BLACKLIST_CATEGORIES)]
+            if deny_blacklists:
+                await self.send_check_result(user_data, reason=f"BLACKLIST DETECTED: {', '.join(deny_blacklists)}", interaction=interaction)
                 await interaction.edit_original_response(content="✅ Check completed and logged.")
                 return
 
