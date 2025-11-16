@@ -25,11 +25,6 @@ MAIN_DIVISIONS = [35678586, 35536880, 34815619, 34815613, 34899357]
 SUB_DIVISIONS = [35335293, 35586073, 35250103]
 INTELLIGENCE_GROUPS = []
 
-SPECIAL_ROBLOX_USERNAME = "BlastPiter"
-SPECIAL_DISCORD_ID = 771699912693645342
-SPECIAL_IMAGE_PATH = os.path.join(
-    os.path.dirname(__file__), "badge_growth.png")
-
 # --- Trello Configuration ---
 TRELLO_API_KEY = os.getenv("TRELLO_API_KEY")
 TRELLO_TOKEN = os.getenv("TRELLO_TOKEN")
@@ -468,16 +463,8 @@ class FilterCheck(commands.Cog):
                 await interaction.edit_original_response(content="✅ Check completed and logged.")
                 return
 
-            # badge_graph = await generate_badge_growth_graph(
-            #     badges, user_data['account_created__date'], user_data['username'], user_data['user_id'])
-            if user_data['username'] == SPECIAL_ROBLOX_USERNAME and discord_id_int == SPECIAL_DISCORD_ID:
-                badge_graph = None
-                special_image_file = discord.File(
-                    SPECIAL_IMAGE_PATH, filename=os.path.basename(SPECIAL_IMAGE_PATH))
-            else:
-                badge_graph = await generate_badge_growth_graph(
-                    badges, user_data['account_created__date'], user_data['username'], user_data['user_id'])
-                special_image_file = None
+            badge_graph = await generate_badge_growth_graph(
+                badges, user_data['account_created__date'], user_data['username'], user_data['user_id'])
 
             # (All criteria met) Generate report + badge graph
             major_str = ", ".join(
@@ -514,17 +501,9 @@ class FilterCheck(commands.Cog):
 
             guild_id = interaction.guild.id if interaction and interaction.guild else None
             channel = self.bot.get_channel(FILTER_CHANNEL_ID.get(guild_id))
-            # if channel:
-            #     await channel.send(content=message)
-            #     if badge_graph:
-            #         file = discord.File(
-            #             badge_graph, filename="badge_growth.png")
-            #         await channel.send(file=file)
             if channel:
                 await channel.send(content=message)
-                if special_image_file:
-                    await channel.send(file=special_image_file)
-                elif badge_graph:
+                if badge_graph:
                     file = discord.File(
                         badge_graph, filename="badge_growth.png")
                     await channel.send(file=file)
