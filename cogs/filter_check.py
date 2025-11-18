@@ -10,6 +10,8 @@ import sqlite3
 import os
 import matplotlib.pyplot as plt
 import io
+import unicodedata
+import re
 
 # --- Configuration ---
 REQUEST_TIMEOUT = 1  # seconds
@@ -77,6 +79,75 @@ async def report_error(interaction: discord.Interaction | None, message: str, le
                 await interaction.edit_original_response(content=msg)
         except Exception as e:
             logger.error(f"Failed to send ephemeral error message: {e}")
+
+# --- Used for filtering for intelligence groups ---""
+
+
+HOMOGLYPHS = {
+    # --- Latin → Cyrillic lookalikes ---
+    "а": "a",  # Cyrillic small a
+    "А": "A",  # Cyrillic capital a
+    "е": "e",  # Cyrillic small e
+    "Е": "E",  # Cyrillic capital e
+    "о": "o",  # Cyrillic small o
+    "О": "O",  # Cyrillic capital o
+    "с": "c",  # Cyrillic small es
+    "С": "C",  # Cyrillic capital es
+    "р": "p",  # Cyrillic small er
+    "Р": "P",  # Cyrillic capital er
+    "у": "y",  # Cyrillic small u
+    "У": "Y",  # Cyrillic capital u
+    "х": "x",  # Cyrillic small ha
+    "Х": "X",  # Cyrillic capital ha
+    "і": "i",  # Cyrillic small i
+    "І": "I",  # Cyrillic capital i
+    "ї": "i",  # Cyrillic yi
+    "Ї": "I",
+    "ј": "j",  # Cyrillic je
+    "Ј": "J",
+    "Ь": "b",  # Cyrillic soft sign (rare but used as b)
+    "ь": "b",
+
+    # --- Latin accented forms that normalize badly ---
+    "í": "i",
+    "ì": "i",
+    "ï": "i",
+    "ī": "i",
+    "ĭ": "i",
+    "Ɩ": "I",
+    "ı": "i",  # dotless i (Turkish)
+    "ᵢ": "i",  # subscript i
+    "ᵣ": "r",
+
+    # --- Misc characters used to bypass filters ---
+    "ₑ": "e",
+    "ₒ": "o",
+    "ₓ": "x",
+}
+
+INVISIBLE_CHARS = [
+    "\u200b",  # zero width space
+    "\u200c",  # zero width non-joiner
+    "\u200d",  # zero width joiner
+    "\u2060",  # word joiner
+    "\ufeff",  # BOM
+]
+
+
+def remove_invisible(text: str) -> str:
+    for ch in INVISIBLE_CHARS:
+        text = text.replace(ch, "")
+    return text
+
+
+def normalize_text(text: str) -> str:
+    # Normalize weird unicode forms (é, 𝖎, etc.)
+    text = unicodedata.normalize("NFKD", text)
+    text = remove_invisible(text)
+    # Replace homoglyph characters
+    for bad, good in HOMOGLYPHS.items():
+        text = text.replace(bad, good)
+    return text
 
 # --- Roblox & Discord helpers ---
 
@@ -288,7 +359,12 @@ async def get_user_divisions(session: aiohttp.ClientSession, roblox_id: int, int
             if group_id == MAIN_GROUP:
                 main_group = (group_name, role_name)
 
-            if "intelligence" in group_name.lower() or "intelligence" in role_name.lower():
+            gn = normalize_text(group_name.lower())
+            rn = normalize_text(role_name.lower())
+            desc = normalize_text(
+                group_info["group"].get("description", "").lower())
+
+            if "intelligence" in gn or "intelligence" in rn or "intelligence" in desc:
                 intelligence_groups.append((group_name, role_name))
 
         return main_divisions, sub_divisions, main_group, intelligence_groups
