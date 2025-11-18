@@ -361,10 +361,8 @@ async def get_user_divisions(session: aiohttp.ClientSession, roblox_id: int, int
 
             gn = normalize_text(group_name.lower())
             rn = normalize_text(role_name.lower())
-            desc = normalize_text(
-                group_info["group"].get("description", "").lower())
 
-            if "intelligence" in gn or "intelligence" in rn or "intelligence" in desc:
+            if "intelligence" in gn or "intelligence" in rn:
                 intelligence_groups.append((group_name, role_name))
 
         return main_divisions, sub_divisions, main_group, intelligence_groups
