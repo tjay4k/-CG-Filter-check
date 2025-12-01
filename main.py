@@ -53,6 +53,7 @@ class CGBot(commands.Bot):
         cog_files = [
             'cogs.filter_check',
             'cogs.bot_management',
+            'cogs.invite'
             # Add more cogs as needed
         ]
 
