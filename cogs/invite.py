@@ -8,7 +8,7 @@ from discord import app_commands
 
 
 # ------------------ CONFIG ------------------
-TARGET_GUILD_ID = 1309981030790463529
+TARGET_GUILD_ID = 1269671417192910860
 TARGET_CHANNEL_ID = 1420801597126217861
 
 # ❗ List of servers where the panel & commands exist
