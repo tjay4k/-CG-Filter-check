@@ -8,7 +8,7 @@ from discord import app_commands
 
 
 # ------------------ CONFIG ------------------
-TARGET_GUILD_ID = 1309981030790463529
+TARGET_GUILD_ID = 1269671417192910860
 TARGET_CHANNEL_ID = 1420801597126217861
 
 # ❗ List of servers where the panel & commands exist
@@ -71,7 +71,7 @@ class InviteButton(discord.ui.View):
         # Ensure button only works in control guilds
         if interaction.guild.id not in CONTROL_GUILDS:
             return await interaction.response.send_message(
-                "❌ This button can only be used in approved servers.",
+                "❌ This button cannot be used here.",
                 ephemeral=True
             )
 
