@@ -1,0 +1,102 @@
+# ============================================================================
+# CG Filter Bot Configuration
+# ============================================================================
+
+# General Settings
+general:
+  # Bot owner IDs - these users bypass ALL permission checks
+  bot_owners:
+    - 433328712532885504 # tjay4k
+  
+  # Test servers - all commands automatically enabled here
+  test_servers:
+    - 1309981030790463529 # Blob Development
+  
+  # Error reporting webhook URL
+  error_webhook_url: "https://discord.com/api/webhooks/1417970733187072081/ycQexta2alnbBbn_eDozDqqrb0K26w1fZ3DcFxaIYA9VaJ_Jz9zbN4ilV3mMVXjLBJYM"  # Set your webhook URL here
+
+# ============================================================================
+# Filter Check Cog
+# ============================================================================
+filter_check:
+  # Servers where filter check can be used (empty = all servers)
+  allowed_servers:
+    - 1322753191749615626  # [TGR] PEACEKEEPER ACADEMY
+    - 1309981030790463529  # Blob Development
+  
+  # Roles allowed to use /check command (empty = everyone)
+  allowed_roles: []
+  
+  # Channels where results are posted
+  result_channels:
+    1322753191749615626: 1383949901091700808  # [TGR] PEACEKEEPER ACADEMY
+    1309981030790463529: 1417970716636086312  # Blob Development
+  
+  # Roblox group configuration
+  roblox:
+    main_group: 34755744
+    main_divisions:
+      - 35678586
+      - 35536880
+      - 34815619
+      - 34815613
+      - 34899357
+    sub_divisions:
+      - 35335293
+      - 35586073
+      - 35250103
+  
+  # Trello configuration
+  trello:
+    board_id: "5bbOw9f8"
+    major_blacklist_categories:
+      - "Universal Blacklists"
+      - "Cuff Division Blacklist"
+    deny_blacklist_categories:
+      - "Coruscant Guard"
+    skip_categories:
+      - "Appealed/Expired"
+  
+  # Filtering thresholds
+  thresholds:
+    min_discord_age_days: 90
+    min_badge_count: 480
+
+# ============================================================================
+# Bot Management Cog
+# ============================================================================
+bot_management:
+  # Servers where bot management commands work (empty = all servers)
+  allowed_servers:
+    - 1309981030790463529  # Blob Development
+  
+  # Roles allowed to use bot management commands
+  allowed_roles:
+    - 1403468054150643814  # Admin role
+
+# ============================================================================
+# Invite Cog
+# ============================================================================
+invite:
+  # Target server to generate invites for
+  target:
+    guild_id: 1269671417192910860
+    channel_id: 1420801597126217861
+  
+  # Servers where invite panel/commands work
+  control_servers:
+    - 1309981030790463529   # Blob Development
+    - 1322753191749615626   # [TGR] PEACEKEEPER ACADEMY
+  
+  # Role required to request an invite
+  required_role_id: 1363491917282676836 # @Trainee
+  
+  # Admin roles for management commands
+  admin_roles:
+    - 1403468054150643814 # @▬▬▬▬▬Academy Directorate▬▬▬▬▬
+  
+  # Webhook for logging invite requests
+  log_webhook_url: "https://discord.com/api/webhooks/1445173947367948601/InhWvggtcgJTzbJOEympACCMjzHl19WoQLrATXKGm25D01XZWdfObtPnDqunE53nKtKV"
+  
+  # Data file for tracking invited users
+  data_file: "invited_users.json"

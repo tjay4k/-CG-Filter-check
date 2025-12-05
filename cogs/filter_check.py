@@ -6,53 +6,37 @@ import io
 from datetime import datetime, timezone
 import aiohttp
 import logging
-import sqlite3
-import os
 import matplotlib.pyplot as plt
-import io
 import unicodedata
-import re
+import os
 
-# --- Configuration ---
-REQUEST_TIMEOUT = 1  # seconds
-BADGE_FETCH_DELAY = 0.1  # seconds
+import config
+from config import is_server_allowed, has_permission, is_bot_owner
+
+
+# --- Configuration from config.py ---
+REQUEST_TIMEOUT = 1
+BADGE_FETCH_DELAY = 0.1
 MAX_CONCURRENT_REQUESTS = 5
-FILTER_CHANNEL_ID = {
-    1322753191749615626: 1383949901091700808,  # [TGR] PEACEKEEPER ACADEMY
-    1309981030790463529: 1417970716636086312  # Test server
-
-}
-MAIN_GROUP = 34755744
-MAIN_DIVISIONS = [35678586, 35536880, 34815619, 34815613, 34899357]
-SUB_DIVISIONS = [35335293, 35586073, 35250103]
+FILTER_CHANNEL_ID = config.FILTER_CHECK["result_channels"]
+MAIN_GROUP = config.FILTER_CHECK["main_group"]
+MAIN_DIVISIONS = config.FILTER_CHECK["main_divisions"]
+SUB_DIVISIONS = config.FILTER_CHECK["sub_divisions"]
 INTELLIGENCE_GROUPS = []
 
-# --- Trello Configuration ---
+# Trello Configuration
 TRELLO_API_KEY = os.getenv("TRELLO_API_KEY")
 TRELLO_TOKEN = os.getenv("TRELLO_TOKEN")
-TRELLO_BOARD_ID = "5bbOw9f8"
-MAJOR_BLACKLIST_CATEGORIES = [
-    "Universal Blacklists",
-    "Cuff Division Blacklist"
-]
-DENY_BLACKLIST_CATEGORIES = [
-    "Coruscant Guard"
-]
-SKIP_CATEGORIES = ["Appealed/Expired"]
+TRELLO_BOARD_ID = config.FILTER_CHECK["trello_board_id"]
+MAJOR_BLACKLIST_CATEGORIES = config.FILTER_CHECK["major_blacklist_categories"]
+DENY_BLACKLIST_CATEGORIES = config.FILTER_CHECK["deny_blacklist_categories"]
+SKIP_CATEGORIES = config.FILTER_CHECK["skip_categories"]
 
-
-# --- Error helpers & setup ---
 logger = logging.getLogger(__name__)
 
-ERROR_WEBHOOK_URL = os.getenv("ERROR_WEBHOOK_URL")
-
-
+# --- Error reporting ---
 async def report_error(interaction: discord.Interaction | None, message: str, level: str = "error", user_message: str | None = None):
-    """
-    Unified error/warning reporter.
-    Sends to logger, webhook, and optionally Discord interaction.
-    level: "warning" | "error"
-    """
+    """Unified error/warning reporter."""
     if level.lower() == "warning":
         logger.warning(message)
     elif level.lower() == "info":
@@ -60,11 +44,11 @@ async def report_error(interaction: discord.Interaction | None, message: str, le
     else:
         logger.error(message)
 
-    if ERROR_WEBHOOK_URL:
+    if config.ERROR_WEBHOOK_URL:
         async with aiohttp.ClientSession() as session:
             try:
                 await session.post(
-                    ERROR_WEBHOOK_URL,
+                    config.ERROR_WEBHOOK_URL,
                     json={"content": f"⚠️ {level.upper()}: {message}"},
                 )
             except Exception as e:
@@ -80,58 +64,19 @@ async def report_error(interaction: discord.Interaction | None, message: str, le
         except Exception as e:
             logger.error(f"Failed to send ephemeral error message: {e}")
 
-# --- Used for filtering for intelligence groups ---""
 
-
+# --- Homoglyphs and text normalization ---
 HOMOGLYPHS = {
-    # --- Latin → Cyrillic lookalikes ---
-    "а": "a",  # Cyrillic small a
-    "А": "A",  # Cyrillic capital a
-    "е": "e",  # Cyrillic small e
-    "Е": "E",  # Cyrillic capital e
-    "о": "o",  # Cyrillic small o
-    "О": "O",  # Cyrillic capital o
-    "с": "c",  # Cyrillic small es
-    "С": "C",  # Cyrillic capital es
-    "р": "p",  # Cyrillic small er
-    "Р": "P",  # Cyrillic capital er
-    "у": "y",  # Cyrillic small u
-    "У": "Y",  # Cyrillic capital u
-    "х": "x",  # Cyrillic small ha
-    "Х": "X",  # Cyrillic capital ha
-    "і": "i",  # Cyrillic small i
-    "І": "I",  # Cyrillic capital i
-    "ї": "i",  # Cyrillic yi
-    "Ї": "I",
-    "ј": "j",  # Cyrillic je
-    "Ј": "J",
-    "Ь": "b",  # Cyrillic soft sign (rare but used as b)
-    "ь": "b",
-
-    # --- Latin accented forms that normalize badly ---
-    "í": "i",
-    "ì": "i",
-    "ï": "i",
-    "ī": "i",
-    "ĭ": "i",
-    "Ɩ": "I",
-    "ı": "i",  # dotless i (Turkish)
-    "ᵢ": "i",  # subscript i
-    "ᵣ": "r",
-
-    # --- Misc characters used to bypass filters ---
-    "ₑ": "e",
-    "ₒ": "o",
-    "ₓ": "x",
+    "а": "a", "А": "A", "е": "e", "Е": "E", "о": "o", "О": "O",
+    "с": "c", "С": "C", "р": "p", "Р": "P", "у": "y", "У": "Y",
+    "х": "x", "Х": "X", "і": "i", "І": "I", "ї": "i", "Ї": "I",
+    "ј": "j", "Ј": "J", "Ь": "b", "ь": "b",
+    "í": "i", "ì": "i", "ï": "i", "ī": "i", "ĭ": "i", "Ɩ": "I",
+    "ı": "i", "ᵢ": "i", "ᵣ": "r",
+    "ₑ": "e", "ₒ": "o", "ₓ": "x",
 }
 
-INVISIBLE_CHARS = [
-    "\u200b",  # zero width space
-    "\u200c",  # zero width non-joiner
-    "\u200d",  # zero width joiner
-    "\u2060",  # word joiner
-    "\ufeff",  # BOM
-]
+INVISIBLE_CHARS = ["\u200b", "\u200c", "\u200d", "\u2060", "\ufeff"]
 
 
 def remove_invisible(text: str) -> str:
@@ -141,16 +86,19 @@ def remove_invisible(text: str) -> str:
 
 
 def normalize_text(text: str) -> str:
-    # Normalize weird unicode forms (é, 𝖎, etc.)
     text = unicodedata.normalize("NFKD", text)
     text = remove_invisible(text)
-    # Replace homoglyph characters
     for bad, good in HOMOGLYPHS.items():
         text = text.replace(bad, good)
     return text
 
-# --- Roblox & Discord helpers ---
 
+# --- All your existing helper functions remain the same ---
+# (fetch_roblox_user_data, fetch_social_count, fetch_user_badges_with_count,
+#  generate_badge_growth_graph, get_user_divisions, fetch_discord_user_info,
+#  check_trello_blacklist - keep these exactly as they are)
+
+# I'll include them here for completeness:
 
 async def fetch_roblox_user_data(session: aiohttp.ClientSession, username: str, interaction: discord.Interaction | None = None):
     """Fetch comprehensive Roblox user data with improved error handling and rate limiting."""
@@ -162,15 +110,12 @@ async def fetch_roblox_user_data(session: aiohttp.ClientSession, username: str, 
             if res.status != 200:
                 await report_error(interaction, f"Failed to fetch user ID for Roblox username {username}: status {res.status}", level="error")
                 return None
-
             data = await res.json()
             if not data.get("data"):
                 await report_error(interaction, f"Roblox user **{username}** not found.", user_message=f"❌ Roblox user **{username}** not found.", level="error")
                 return None
-
             user_id = data["data"][0]["id"]
 
-        # Fetch basic user info
         async with session.get(f"https://users.roblox.com/v1/users/{user_id}", timeout=timeout) as res:
             if res.status == 404:
                 await report_error(interaction, f"Roblox user with ID {user_id} not found. (404)", user_message=f"❌ Roblox user with ID **{user_id}** was not found.", level="error")
@@ -181,13 +126,10 @@ async def fetch_roblox_user_data(session: aiohttp.ClientSession, username: str, 
             data = await res.json()
             username = data.get("name")
             created_str = data.get("created")
-
             if not username or not created_str:
                 await report_error(interaction, f"Invalid user data for Roblox ID {user_id}", level="error")
                 return None
-
-            created_date = datetime.fromisoformat(
-                created_str.replace("Z", "+00:00"))
+            created_date = datetime.fromisoformat(created_str.replace("Z", "+00:00"))
             account_age_days = (datetime.now(timezone.utc) - created_date).days
 
         async with session.get(f"https://inventory.roblox.com/v1/users/{user_id}/can-view-inventory", timeout=timeout) as res:
@@ -199,12 +141,9 @@ async def fetch_roblox_user_data(session: aiohttp.ClientSession, username: str, 
                 await report_error(interaction, f"Roblox user **{username} ({user_id})** has their inventory set to private.", user_message=f"❌ Roblox user **{username} ({user_id})** has their inventory set to private.", level="error")
                 return None
 
-        # Fetch social stats
         followers = await fetch_social_count(session, user_id, "followers", timeout, interaction)
         following = await fetch_social_count(session, user_id, "followings", timeout, interaction)
         friends = await fetch_social_count(session, user_id, "friends", timeout, interaction)
-
-        # Fetch badges
         badges, badge_count = await fetch_user_badges_with_count(session, user_id)
         badge_pages = (badge_count + 29) // 30
 
@@ -228,7 +167,6 @@ async def fetch_roblox_user_data(session: aiohttp.ClientSession, username: str, 
 
 
 async def fetch_social_count(session: aiohttp.ClientSession, user_id: int, endpoint: str, timeout: aiohttp.ClientTimeout, interaction: discord.Interaction | None = None) -> int:
-    """Fetch social count (followers/following/friends) with error handling."""
     try:
         async with session.get(f"https://friends.roblox.com/v1/users/{user_id}/{endpoint}/count", timeout=timeout) as res:
             if res.status == 200:
@@ -243,10 +181,6 @@ async def fetch_social_count(session: aiohttp.ClientSession, user_id: int, endpo
 
 
 async def fetch_user_badges_with_count(session: aiohttp.ClientSession, user_id: int, interaction: discord.Interaction | None = None):
-    """
-    Fetch all badges for a user with their creation dates,
-    and also return the total badge count.
-    """
     badges = []
     badge_count = 0
     cursor = None
@@ -257,30 +191,23 @@ async def fetch_user_badges_with_count(session: aiohttp.ClientSession, user_id: 
             url = f"https://badges.roblox.com/v1/users/{user_id}/badges?limit=100"
             if cursor:
                 url += f"&cursor={cursor}"
-
             async with session.get(url, timeout=timeout) as res:
                 if res.status != 200:
                     await report_error(interaction, f"Failed to fetch badges for user {user_id}: {res.status}", level="error")
                     break
-
                 data = await res.json()
                 badges_data = data.get("data", [])
                 badge_count += len(badges_data)
-
-                # Collect badge names and creation dates
                 for badge in badges_data:
                     if "created" in badge:
                         badges.append({
                             "name": badge["name"],
                             "creation_date": datetime.fromisoformat(badge["created"].replace("Z", "+00:00"))
                         })
-
                 cursor = data.get("nextPageCursor")
                 if not cursor:
                     break
-
                 await asyncio.sleep(BADGE_FETCH_DELAY)
-
     except Exception as e:
         await report_error(interaction, f"Error fetching badges for user {user_id}: {e}", level="error")
 
@@ -288,21 +215,13 @@ async def fetch_user_badges_with_count(session: aiohttp.ClientSession, user_id: 
 
 
 async def generate_badge_growth_graph(badges, account_created_date, username, user_id, interaction: discord.Interaction | None = None):
-    """Create a step graph of cumulative badge growth and return a BytesIO object."""
     if not badges:
         await report_error(interaction, f"No badges to generate graph for {username} ({user_id}).", level="warning")
         return None
-
-    valid_badges = [b for b in badges if b["creation_date"]
-                    > account_created_date]
-    # for badge in badges:
-    #     if badge["creation_date"] > account_created_date:
-    #         valid_badges.append(badge)
-
+    valid_badges = [b for b in badges if b["creation_date"] > account_created_date]
     if not valid_badges:
         await report_error(interaction, f"No valid badges after filtering by account creation for {username} ({user_id}).", level="warning")
         return None
-
     valid_badges.sort(key=lambda x: x["creation_date"])
     dates = [account_created_date] + [b["creation_date"] for b in valid_badges]
     cumulative = [0] + list(range(1, len(valid_badges) + 1))
@@ -315,28 +234,23 @@ async def generate_badge_growth_graph(badges, account_created_date, username, us
         plt.title(f"{username} ({user_id}) Badge Growth")
         plt.xticks(rotation=45)
         plt.tight_layout()
-
         buf = io.BytesIO()
         plt.savefig(buf, format='png')
         plt.close()
         buf.seek(0)
         return buf
-
     except Exception as e:
         await report_error(interaction, f"Error generating badge graph for {username} ({user_id}): {e}", level="error")
         return None
 
 
-async def get_user_divisions(session: aiohttp.ClientSession, roblox_id: int, interaction: discord.Interaction | None = None) -> tuple[
-        list[tuple[str, str]], list[tuple[str, str]], tuple[str, str] | None, list[tuple[str, str]]]:
-    """Check if the user is in any of the main or sub divisions."""
+async def get_user_divisions(session: aiohttp.ClientSession, roblox_id: int, interaction: discord.Interaction | None = None):
     url = f"https://groups.roblox.com/v1/users/{roblox_id}/groups/roles"
     try:
         async with session.get(url) as res:
             if res.status != 200:
-                await report_error(interaction, f"Failed to fetch Trello board: status {res.status}", level="warning")
+                await report_error(interaction, f"Failed to fetch groups: status {res.status}", level="warning")
                 return [], [], None, []
-
             data = await res.json()
             groups = data.get("data", [])
 
@@ -352,31 +266,26 @@ async def get_user_divisions(session: aiohttp.ClientSession, roblox_id: int, int
 
             if group_id in MAIN_DIVISIONS:
                 main_divisions.append((group_name, role_name))
-
             if group_id in SUB_DIVISIONS:
                 sub_divisions.append((group_name, role_name))
-
             if group_id == MAIN_GROUP:
                 main_group = (group_name, role_name)
 
             gn = normalize_text(group_name.lower())
             rn = normalize_text(role_name.lower())
-
             if "intelligence" in gn or "intelligence" in rn:
                 intelligence_groups.append((group_name, role_name))
 
         return main_divisions, sub_divisions, main_group, intelligence_groups
-
     except Exception as e:
         await report_error(interaction, f"Exception fetching groups for user {roblox_id}: {e}", level="error")
         return [], [], None, []
 
 
-async def fetch_discord_user_info(bot: discord.Client, discord_id: int, interaction: discord.Interaction | None = None) -> dict | None:
+async def fetch_discord_user_info(bot: discord.Client, discord_id: int, interaction: discord.Interaction | None = None):
     try:
         user: discord.User = await bot.fetch_user(discord_id)
         account_age_days = (discord.utils.utcnow() - user.created_at).days
-
         return {
             "id": user.id,
             "username": f"{user.name}#{user.discriminator}",
@@ -384,30 +293,20 @@ async def fetch_discord_user_info(bot: discord.Client, discord_id: int, interact
             "bot": user.bot,
             "avatar_url": str(user.avatar.url) if user.avatar else None
         }
-
     except discord.NotFound:
         await report_error(interaction, f"Discord user with ID {discord_id} not found.", user_message=f"❌ Discord user with ID **{discord_id}** was not found.", level="error")
         return None
-
     except discord.HTTPException as e:
         await report_error(interaction, f"HTTP error fetching Discord user {discord_id}: {e}", level="error")
         return None
 
 
-# --- Trello helper ---
-
-
 async def check_trello_blacklist(identifiers: list[str], interaction: discord.Interaction | None = None):
-    """
-    Check a Trello board for blacklists for given identifiers (Roblox username, Discord ID, etc.).
-    Returns a dict with major_blacklists and blacklists.
-    """
     url = (
         f"https://api.trello.com/1/boards/{TRELLO_BOARD_ID}/lists"
         f"?cards=all&card_fields=name,due&fields=name"
         f"&key={TRELLO_API_KEY}&token={TRELLO_TOKEN}"
     )
-
     major_blacklists = []
     blacklists = []
     now = datetime.now(timezone.utc)
@@ -422,20 +321,15 @@ async def check_trello_blacklist(identifiers: list[str], interaction: discord.In
 
         for trello_list in lists:
             list_name = trello_list["name"]
-
             if list_name in SKIP_CATEGORIES:
                 continue
-
             for card in trello_list.get("cards", []):
                 card_name = card["name"]
                 due_str = card.get("due")
-
                 if due_str:
-                    due_date = datetime.fromisoformat(
-                        due_str.replace("Z", "+00:00"))
+                    due_date = datetime.fromisoformat(due_str.replace("Z", "+00:00"))
                     if due_date < now:
                         continue
-
                 if any(identifier.lower() in card_name.lower() for identifier in identifiers):
                     if list_name in MAJOR_BLACKLIST_CATEGORIES:
                         if list_name not in major_blacklists:
@@ -444,16 +338,13 @@ async def check_trello_blacklist(identifiers: list[str], interaction: discord.In
                         if list_name not in blacklists:
                             blacklists.append(list_name)
 
-        return {
-            "major_blacklists": major_blacklists,
-            "blacklists": blacklists
-        }
-
+        return {"major_blacklists": major_blacklists, "blacklists": blacklists}
     except Exception as e:
         await report_error(interaction, f"Exception checking Trello blacklists: {e}", level="error")
         return None
 
 
+# --- Main Cog ---
 class FilterCheck(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -464,20 +355,50 @@ class FilterCheck(commands.Cog):
     async def on_ready(self):
         logger.info(f"{self.__class__.__name__} cog has been loaded")
 
+    async def check_permissions(self, interaction: discord.Interaction) -> bool:
+        """Check if user can use filter check in this server"""
+        # Check if command is allowed in this server
+        if not is_server_allowed(interaction.guild_id, config.FILTER_CHECK["allowed_servers"]):
+            await interaction.response.send_message(
+                "❌ Filter check is not available in this server.",
+                ephemeral=True
+            )
+            return False
+        
+        # Check user permissions (if roles are configured)
+        if config.FILTER_CHECK["allowed_roles"]:
+            user_roles = [role.id for role in interaction.user.roles]
+            if not has_permission(
+                interaction.user.id,
+                user_roles,
+                config.FILTER_CHECK["allowed_roles"]
+            ):
+                await interaction.response.send_message(
+                    "❌ You don't have permission to use filter check.",
+                    ephemeral=True
+                )
+                return False
+        
+        return True
+
     async def send_check_result(self, user_data: dict, reason: str, interaction: discord.Interaction | None = None):
-        """Send only the failure reason to the configured channel."""
         guild_id = interaction.guild.id if interaction and interaction.guild else None
         channel = self.bot.get_channel(FILTER_CHANNEL_ID.get(guild_id))
         if not channel:
             await report_error(interaction, f"Filter channel not found.", level="error")
             return
-
         message = f"```yaml\n{user_data.get('username', 'Unknown')} is ❌ DENIED ❌ [{reason}]\n```"
         await channel.send(content=message)
 
     @app_commands.command(name="check", description="Check a user's Roblox & Discord account information.")
-    @app_commands.describe(roblox_username="The Roblox username to check.", discord_id="The Discord user ID to check.")
+    @app_commands.describe(
+        roblox_username="The Roblox username to check.",
+        discord_id="The Discord user ID to check."
+    )
     async def check(self, interaction: discord.Interaction, roblox_username: str, discord_id: str):
+        if not await self.check_permissions(interaction):
+            return
+        
         await interaction.response.defer(ephemeral=True)
         await interaction.edit_original_response(content="⏳ Processing the check...")
 
@@ -488,61 +409,65 @@ class FilterCheck(commands.Cog):
             return
 
         async with aiohttp.ClientSession() as session:
-            # Fetch discord info and validate account age
             user_info = await fetch_discord_user_info(self.bot, discord_id_int, interaction)
             if not user_info:
-                # await report_error(interaction, f"Could not fetch Discord user with ID {discord_id}.", level="error")
                 return
 
-            if user_info['account_age_days'] < 90:
-                # await self.send_check_result(user_data, reason="DISCORD ACCOUNT TOO YOUNG", interaction=interaction)
-                await self.send_check_result({"username": user_info['username']}, reason="DISCORD ACCOUNT TOO YOUNG", interaction=interaction)
-
+            if user_info['account_age_days'] < config.FILTER_CHECK["min_discord_age_days"]:
+                await self.send_check_result(
+                    {"username": user_info['username']},
+                    reason="DISCORD ACCOUNT TOO YOUNG",
+                    interaction=interaction
+                )
                 await interaction.edit_original_response(content="✅ Check completed and logged.")
                 return
 
-            # Fetch basic roblox info
             user_data = await fetch_roblox_user_data(session, roblox_username, interaction)
             if not user_data:
-                # await report_error(interaction, f"Failed to fetch Roblox data for ID {roblox_id}.")
                 return
 
-            # Check for any blacklists
             identifiers = [user_data['username'], str(discord_id_int)]
             blacklist_info = await check_trello_blacklist(identifiers)
-            major_blacklists = blacklist_info['major_blacklists'] if blacklist_info else [
-            ]
+            major_blacklists = blacklist_info['major_blacklists'] if blacklist_info else []
             blacklists = blacklist_info['blacklists'] if blacklist_info else []
 
             if major_blacklists:
-                await self.send_check_result(user_data, reason=f"MAJOR BLACKLIST DETECTED: {', '.join(major_blacklists)}", interaction=interaction)
+                await self.send_check_result(
+                    user_data,
+                    reason=f"MAJOR BLACKLIST DETECTED: {', '.join(major_blacklists)}",
+                    interaction=interaction
+                )
                 await interaction.edit_original_response(content="✅ Check completed and logged.")
                 return
 
             deny_blacklists = [bl for bl in blacklists if any(
                 deny_cat.lower() in bl.lower() for deny_cat in DENY_BLACKLIST_CATEGORIES)]
             if deny_blacklists:
-                await self.send_check_result(user_data, reason=f"BLACKLIST DETECTED: {', '.join(deny_blacklists)}", interaction=interaction)
+                await self.send_check_result(
+                    user_data,
+                    reason=f"BLACKLIST DETECTED: {', '.join(deny_blacklists)}",
+                    interaction=interaction
+                )
                 await interaction.edit_original_response(content="✅ Check completed and logged.")
                 return
 
-            # Fetch user's divisions and check for any main divisions
-            main_divisions, sub_divisions, main_group, intelligence_groups = await get_user_divisions(session, user_data['user_id'])
-
-            # Fetch user's badges, check count, create the graph
+            main_divisions, sub_divisions, main_group, intelligence_groups = await get_user_divisions(
+                session, user_data['user_id'])
             badges, badge_count = await fetch_user_badges_with_count(session, user_data['user_id'])
 
-            if badge_count < 480:
-                await self.send_check_result(user_data, reason=f"NOT ENOUGH BADGES DETECTED ({badge_count}/480)", interaction=interaction)
+            if badge_count < config.FILTER_CHECK["min_badge_count"]:
+                await self.send_check_result(
+                    user_data,
+                    reason=f"NOT ENOUGH BADGES DETECTED ({badge_count}/{config.FILTER_CHECK['min_badge_count']})",
+                    interaction=interaction
+                )
                 await interaction.edit_original_response(content="✅ Check completed and logged.")
                 return
 
             badge_graph = await generate_badge_growth_graph(
                 badges, user_data['account_created__date'], user_data['username'], user_data['user_id'])
 
-            # (All criteria met) Generate report + badge graph
-            major_str = ", ".join(
-                major_blacklists) if major_blacklists else "Clear"
+            major_str = ", ".join(major_blacklists) if major_blacklists else "Clear"
             blacklist_str = ", ".join(blacklists) if blacklists else "Clear"
 
             message = (
@@ -555,13 +480,11 @@ class FilterCheck(commands.Cog):
                 f"Followers: {user_data['followers']}, Followings: {user_data['following']}, Friends: {user_data['friends']}\n"
                 f"Major Blacklists: {major_str}\n"
                 f"Blacklists: {blacklist_str}\n"
-                f"Followers: {user_data['followers']}, Followings: {user_data['following']}, Friends: {user_data['friends']}\n"
                 f"Main Group: {main_group}\n"
                 f"Main Divisions: {main_divisions}\n"
                 f"Sub Divisions: {sub_divisions}\n"
                 f"Intelligence Groups: {intelligence_groups}\n"
                 f"```"
-
                 f"```yaml\n"
                 f"-------------DISCORD INFO-------------\n"
                 f"Account Age: {user_info['account_age_days']} days old\n"
@@ -578,8 +501,7 @@ class FilterCheck(commands.Cog):
             if channel:
                 await channel.send(content=message)
                 if badge_graph:
-                    file = discord.File(
-                        badge_graph, filename="badge_growth.png")
+                    file = discord.File(badge_graph, filename="badge_growth.png")
                     await channel.send(file=file)
 
             await interaction.edit_original_response(content="✅ Check completed and logged.")
