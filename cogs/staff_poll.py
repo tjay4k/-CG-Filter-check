@@ -219,7 +219,7 @@ class StaffRatingCog(commands.Cog):
             
             # Send intro message
             intro_text = """<@&1269671417394499684>
-            ## Coruscant Guard Staff Rating
+## Coruscant Guard Staff Rating
 As always, this rating is conducted to gather insight into how our staff team is perceived by the community. The list is ordered from highest to lowest rank.
 Please be honest with your feedback, your responses will **not affect any promotions or demotions.** This is solely for internal review and continuous improvement.
 Your input helps us grow and improve our training environment, so we truly appreciate you taking the time to participate!"""
