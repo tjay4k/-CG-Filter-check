@@ -16,3 +16,6 @@ pyyaml  # For YAML config
 
 # Optional: Better performance
 # uvloop  # Unix only, faster async event loop
+
+gspread
+oauth2client
