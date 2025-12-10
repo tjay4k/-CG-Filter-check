@@ -11,7 +11,8 @@ class Config:
     """Configuration manager that loads from YAML file"""
     
     def __init__(self, config_file: str = "config.yaml"):
-        self.config_file = config_file
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        self.config_file = os.path.join(current_dir, config_file)
         self._config = self._load_config()
     
     def _load_config(self) -> dict:
@@ -155,6 +156,16 @@ INVITE = {
     "admin_roles": config.get('invite', 'admin_roles', default=[]),
     "log_webhook_url": config.get('invite', 'log_webhook_url', default=''),
     "data_file": config.get('invite', 'data_file', default='invited_users.json'),
+}
+
+STAFF_RATING = {
+   "spreadsheet_url": config.get('staff_rating', 'spreadsheet', 'url'),
+   "credentials": config.get('staff_rating', 'spreadsheet', 'credentials_file', default='credentials.json'),
+   "command_sheet": config.get('staff_rating', 'spreadsheet', 'sheets', 'high_command', default='Info2'),
+   "company_command_sheet": config.get('staff_rating', 'spreadsheet', 'sheets', 'company_command', default='Officers'),
+   "servers": config.get('staff_rating', 'servers', default={}),
+   "admin_roles": config.get('staff_rating', 'admin_roles', default=[]),
+   "reactions": config.get('staff_rating', 'reactions', default=["🟩", "🟨", "🟥"])    
 }
 
 # Export helper functions

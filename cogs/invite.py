@@ -68,7 +68,8 @@ class InviteButton(discord.ui.View):
         if not is_bot_owner(user_id):
 
             # Check required role
-            required_role = interaction.guild.get_role(config.INVITE["required_role_id"])
+            required_role = interaction.guild.get_role(
+                config.INVITE["required_role_id"])
             if required_role not in user.roles:
                 return await interaction.response.send_message(
                     "❌ You do not have the required role to request an invite.",
@@ -84,7 +85,8 @@ class InviteButton(discord.ui.View):
 
         # Create invite from target guild
         target_guild = self.bot.get_guild(config.INVITE["target_guild_id"])
-        target_channel = target_guild.get_channel(config.INVITE["target_channel_id"])
+        target_channel = target_guild.get_channel(
+            config.INVITE["target_channel_id"])
 
         invite = await target_channel.create_invite(
             max_uses=1,
@@ -108,11 +110,11 @@ class InviteButton(discord.ui.View):
                 f"### You must now do the following:\n"
                 f"• Request to join the Coruscant Guard Roblox group\n"
                 f"• Join the Coruscant Guard Discord Server → {invite.url}\n"
-                f"- & Fill out the verification format in https://discord.com/channels/1269671417192910860/1352349414546604133\n"
-                f"- & Change your server name to [TRN] | username | timezone\n"
+                f"• & Fill out the verification format in https://discord.com/channels/1269671417192910860/1352349414546604133\n"
+                f"• & Change your server name to [TRN] | username | timezone\n"
                 f"• Join the Republic Security Forces Discord → https://discord.gg/UTvv6bg7Ws\n"
-                f"- & Fill out the verification format in https://discord.com/channels/1343041443316502590/1343044438213001307\n"
-                f"- & Change your server name to [TRN] | username | timezone\n"
+                f"• & Fill out the verification format in https://discord.com/channels/1343041443316502590/1343044438213001307\n"
+                f"• & Change your server name to [TRN] | username | timezone\n"
                 f"• Leave the PEACEKEEPER ACADEMY Discord\n"
                 f"• Wait patiently to be accepted.\n"
             )

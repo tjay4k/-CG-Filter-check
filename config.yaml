@@ -100,3 +100,38 @@ invite:
 
   # Data file for tracking invited users
   data_file: "invited_users.json"
+
+# ============================================================================
+# Staff Rating Cog
+# ============================================================================
+staff_rating:
+  # Google Sheets configuration
+  spreadsheet:
+    url: "https://docs.google.com/spreadsheets/d/1sa5dVg2kn5Vtx4r6oTPTZxXw2PXTXJZrqb8Q8sxtUCc/edit?usp=sharing"
+    credentials_file: "credentials.json"
+
+    # Sheet names
+    sheets:
+      high_command: "Info2"
+      company_command: "Officers"
+
+  # Servers it can be used in + the channel to send it in
+  servers:
+    1309981030790463529: # Blob Development
+      rating_channel_id: 1447690354320081157 # Channel where rating posts
+      auto_post: false
+
+    1269671417192910860: # [TGR] Coruscant Guard
+      rating_channel_id: 1271643356367294535 # Channel where rating posts
+      auto_post: true
+
+  # Roles allowed to use the command
+  admin_roles:
+    - 1269671417620992000 # HICOM role
+
+  # Reactions to add to each person
+  reactions:
+    - "🟩" # Good
+    - "🟨" # Okay / no opinion
+    - "🟥" # Needs improvement
+
