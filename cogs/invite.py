@@ -85,8 +85,17 @@ class InviteButton(discord.ui.View):
 
         # Create invite from target guild
         target_guild = self.bot.get_guild(config.INVITE["target_guild_id"])
+        if target_guild is None:
+            return await interaction.response.send_message(
+                "❌ Bot is not in the target guild.", ephemeral=True
+            )
+
         target_channel = target_guild.get_channel(
             config.INVITE["target_channel_id"])
+        if target_channel is None:
+            return await interaction.response.send_message(
+                "❌ Cannot find the target channel.", ephemeral=True
+            )
 
         invite = await target_channel.create_invite(
             max_uses=1,
