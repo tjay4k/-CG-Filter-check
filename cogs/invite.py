@@ -54,93 +54,124 @@ class InviteButton(discord.ui.View):
         custom_id="invite_button"
     )
     async def get_invite(self, interaction: discord.Interaction, button: discord.ui.Button):
-        user = interaction.user
-        user_id = user.id
-
-        # Ensure button is only usable in a control server
-        if not is_server_allowed(interaction.guild_id, config.INVITE["control_servers"]):
-            return await interaction.response.send_message(
-                "❌ This button cannot be used here.",
-                ephemeral=True
-            )
-
-        # Owners bypass the invite limits
-        if not is_bot_owner(user_id):
-
-            # Check required role
-            required_role = interaction.guild.get_role(
-                config.INVITE["required_role_id"])
-            if required_role not in user.roles:
-                return await interaction.response.send_message(
-                    "❌ You do not have the required role to request an invite.",
-                    ephemeral=True
-                )
-
-            # Prevent duplicate invite
-            if user_id in data["requested"]:
-                return await interaction.response.send_message(
-                    "❌ You already received an invite.",
-                    ephemeral=True
-                )
-
-        # Create invite from target guild
-        target_guild = self.bot.get_guild(config.INVITE["target_guild_id"])
-        if target_guild is None:
-            await log_to_webhook(f"❌ Target guild {config.INVITE['target_guild_id']} not found for {interaction.user} ({interaction.user.id}).")
-            return await interaction.response.send_message(
-                "⚠️ Something went wrong. Please contact the bot owner.", 
-                ephemeral=True
-            )
-
-        target_channel = target_guild.get_channel(
-            config.INVITE["target_channel_id"])
-        if target_channel is None:
-            await log_to_webhook(f"❌ Target channel {config.INVITE['target_channel_id']} not found in guild {target_guild.id} for {interaction.user} ({interaction.user.id}).")
-            return await interaction.response.send_message(
-                "⚠️ Something went wrong. Please contact the bot owner.", 
-                ephemeral=True
-            )
-
-        invite = await target_channel.create_invite(
-            max_uses=1,
-            max_age=3600,
-            unique=True
-        )
-
-        # Track user unless they’re an owner
-        if not is_bot_owner(user_id):
-            data["requested"].append(user_id)
-            save_data(data)
-
-        await log_to_webhook(
-            f"🎟️ **{user}** (ID: {user_id}) requested an invite."
-        )
-
-        # Try sending DM
         try:
-            await user.send(
-                f"# **Congratulations on passing the CG Academy!** 🎉\n"
-                f"### You must now do the following:\n"
-                f"• Request to join the Coruscant Guard Roblox group\n"
-                f"• Join the Coruscant Guard Discord Server → {invite.url}\n"
-                f"• & Fill out the verification format in https://discord.com/channels/1269671417192910860/1352349414546604133\n"
-                f"• & Change your server name to [TRN] | username | timezone\n"
-                f"• Join the Republic Security Forces Discord → https://discord.gg/UTvv6bg7Ws\n"
-                f"• & Fill out the verification format in https://discord.com/channels/1343041443316502590/1343044438213001307\n"
-                f"• & Change your server name to [TRN] | username | timezone\n"
-                f"• Leave the PEACEKEEPER ACADEMY Discord\n"
-                f"• Wait patiently to be accepted.\n"
+            user = interaction.user
+            user_id = user.id
+
+            # Ensure button is only usable in a control server
+            if not is_server_allowed(interaction.guild_id, config.INVITE["control_servers"]):
+                return await interaction.response.send_message(
+                    "❌ This button cannot be used here.",
+                    ephemeral=True
+                )
+
+            # Owners bypass the invite limits
+            if not is_bot_owner(user_id):
+
+                # Check required role
+                required_role = interaction.guild.get_role(
+                    config.INVITE["required_role_id"])
+                if required_role is None or required_role not in user.roles:
+                    await log_to_webhook(
+                        f"⚠️ User {user} ({user.id}) tried to request an invite, "
+                        f"but required role {config.INVITE['required_role_id']} not found or missing."
+                    )
+                    return await interaction.response.send_message(
+                        "❌ You do not have the required role to request an invite.",
+                        ephemeral=True
+                    )
+
+                # Prevent duplicate invite
+                if user_id in data["requested"]:
+                    return await interaction.response.send_message(
+                        "❌ You already received an invite.",
+                        ephemeral=True
+                    )
+
+            # Create invite from target guild
+            target_guild = self.bot.get_guild(config.INVITE["target_guild_id"])
+            if target_guild is None:
+                await log_to_webhook(f"❌ Target guild {config.INVITE['target_guild_id']} not found for {interaction.user} ({interaction.user.id}).")
+                return await interaction.response.send_message(
+                    "⚠️ Something went wrong. Please contact the bot owner.",
+                    ephemeral=True
+                )
+
+            target_channel = target_guild.get_channel(
+                config.INVITE["target_channel_id"])
+            if target_channel is None:
+                await log_to_webhook(f"❌ Target channel {config.INVITE['target_channel_id']} not found in guild {target_guild.id} for {interaction.user} ({interaction.user.id}).")
+                return await interaction.response.send_message(
+                    "⚠️ Something went wrong. Please contact the bot owner.",
+                    ephemeral=True
+                )
+            try:
+                invite = await target_channel.create_invite(
+                    max_uses=1,
+                    max_age=3600,
+                    unique=True
+                )
+            except Exception as e:
+                await log_to_webhook(f"❌ Failed to create invite for {user} ({user_id}): {e}")
+                return await interaction.response.send_message(
+                    "⚠️ Something went wrong. Please contact the bot owner.",
+                    ephemeral=True
+                )
+
+            # Track user unless they’re an owner
+            if not is_bot_owner(user_id):
+                try:
+                    data["requested"].append(user_id)
+                    save_data(data)
+                except Exception as e:
+                    await log_to_webhook(f"❌ Failed to save data for {user} ({user_id}): {e}")
+                    return await interaction.response.send_message(
+                        "⚠️ Something went wrong. Please contact the bot owner.",
+                        ephemeral=True
+                    )
+
+            await log_to_webhook(
+                f"🎟️ **{user}** (ID: {user_id}) requested an invite."
             )
-        except discord.Forbidden:
+
+            # Try sending DM
+            try:
+                await user.send(
+                    f"# **Congratulations on passing the CG Academy!** 🎉\n"
+                    f"### You must now do the following:\n"
+                    f"• Request to join the Coruscant Guard Roblox group\n"
+                    f"• Join the Coruscant Guard Discord Server → {invite.url}\n"
+                    f"• & Fill out the verification format in https://discord.com/channels/1269671417192910860/1352349414546604133\n"
+                    f"• & Change your server name to [TRN] | username | timezone\n"
+                    f"• Join the Republic Security Forces Discord → https://discord.gg/UTvv6bg7Ws\n"
+                    f"• & Fill out the verification format in https://discord.com/channels/1343041443316502590/1343044438213001307\n"
+                    f"• & Change your server name to [TRN] | username | timezone\n"
+                    f"• Leave the PEACEKEEPER ACADEMY Discord\n"
+                    f"• Wait patiently to be accepted.\n"
+                )
+            except discord.Forbidden:
+                return await interaction.response.send_message(
+                    "⚠️ I could not DM you. Please enable DMs.",
+                    ephemeral=True
+                )
+
+            # Log success
+            try:
+                await log_to_webhook(f"🎟️ {user} ({user_id}) requested an invite")
+            except Exception:
+                pass  # Do not fail interaction if logging fails
+
             return await interaction.response.send_message(
-                "⚠️ I could not DM you. Please enable DMs.",
+                "📩 Check your DMs! I've sent your invite.",
                 ephemeral=True
             )
 
-        return await interaction.response.send_message(
-            "📩 Check your DMs! I've sent your invite.",
-            ephemeral=True
-        )
+        except Exception as e:
+            await log_to_webhook(f"❌ Unexpected error in get_invite for {user} ({user_id}): {e}")
+            return await interaction.response.send_message(
+                "⚠️ Something went wrong. Please contact the bot owner.",
+                ephemeral=True
+            )
 
 
 # ------------------ MAIN COG ------------------
