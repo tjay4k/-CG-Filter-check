@@ -37,9 +37,12 @@ async def log_to_webhook(message: str):
     webhook_url = config.INVITE.get("log_webhook_url")
     if not webhook_url:
         return
-
-    async with aiohttp.ClientSession() as session:
-        await session.post(webhook_url, json={"content": message})
+    try:
+        async with aiohttp.ClientSession() as session:
+            resp = await session.post(webhook_url, json={"content": message})
+            print(f"Webhook response: {resp.status}")
+    except Exception as e:
+        print(f"Webhook failed: {e}")
 
 
 # ------------------ INVITE BUTTON ------------------
