@@ -71,13 +71,26 @@ class InviteButton(discord.ui.View):
             # Owners bypass the invite limits
             if not is_bot_owner(user_id):
 
-                # Check required role
-                required_role = interaction.guild.get_role(
-                    config.INVITE["required_role_id"])
-                if required_role is None or required_role not in user.roles:
+                # # Check required role
+                # required_role = interaction.guild.get_role(
+                #     config.INVITE["required_role_id"])
+                # if required_role is None or required_role not in user.roles:
+                #     await log_to_webhook(
+                #         f"⚠️ User {user} ({user.id}) tried to request an invite, "
+                #         f"but required role {config.INVITE['required_role_id']} not found or missing."
+                #     )
+                #     return await interaction.response.send_message(
+                #         "❌ You do not have the required role to request an invite.",
+                #         ephemeral=True
+                #     )
+
+                required_role_id = config.INVITE["required_role_id"]
+                member = await interaction.guild.fetch_member(user.id)
+                if required_role_id not in [role.id for role in member.roles]:
                     await log_to_webhook(
                         f"⚠️ User {user} ({user.id}) tried to request an invite, "
-                        f"but required role {config.INVITE['required_role_id']} not found or missing."
+                        f"but required role {required_role_id} not found or missing. "
+                        f"User roles: {[r.id for r in member.roles]}"
                     )
                     return await interaction.response.send_message(
                         "❌ You do not have the required role to request an invite.",
