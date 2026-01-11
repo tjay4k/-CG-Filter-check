@@ -99,7 +99,7 @@ invite:
   log_webhook_url: "https://discord.com/api/webhooks/1445173947367948601/InhWvggtcgJTzbJOEympACCMjzHl19WoQLrATXKGm25D01XZWdfObtPnDqunE53nKtKV"
 
   # Data file for tracking invited users
-  data_file: "invited_users.json"
+  data_file: "/home/ubuntu/bot/invited_users.json"
 
 # ============================================================================
 # Staff Rating Cog
