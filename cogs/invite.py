@@ -194,6 +194,7 @@ class InviteButton(discord.ui.View):
 class InviteCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.bot.add_view(InviteButton(self.bot))
 
     async def check_admin_permissions(self, interaction: discord.Interaction) -> bool:
 
