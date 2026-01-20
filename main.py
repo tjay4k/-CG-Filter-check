@@ -69,9 +69,7 @@ class CGBot(commands.Bot):
         logger.info(f'Bot is in {len(self.guilds)} guilds')
 
         await self.change_presence(
-            activity=discord.Activity(
-                type=discord.ActivityType.watching, name="you 👀"),
-            # activity=discord.CustomActivity(name="Custom status text")
+            activity=discord.CustomActivity(name="Watching you 👀"),
             status=discord.Status.online
         )
 
