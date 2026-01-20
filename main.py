@@ -68,6 +68,13 @@ class CGBot(commands.Bot):
         logger.info(f'{self.user} has logged in!')
         logger.info(f'Bot is in {len(self.guilds)} guilds')
 
+        await self.change_presence(
+            activity=discord.Activity(
+                type=discord.ActivityType.watching, name="you 👀"),
+            # activity=discord.CustomActivity(name="Custom status text")
+            status=discord.Status.online
+        )
+
 
 async def main():
     bot = CGBot()
