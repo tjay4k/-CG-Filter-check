@@ -54,6 +54,7 @@ class CGBot(commands.Bot):
             'cogs.filter_check',
             'cogs.bot_management',
             'cogs.invite',
+            'cogs.staff_poll'
             # Add more cogs as needed
         ]
 
