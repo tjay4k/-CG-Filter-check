@@ -34,7 +34,7 @@ class StaffRatingCog(commands.Cog):
             ("Info2", "E17:F17", "**Lieutenant Thire**"),
 
             # Section header
-            ("header", "▬▬▬▬▬ Coruscant Guard Instructor Command ▬▬▬▬▬"),
+            ("header", "▬▬▬▬▬ Instructor Command ▬▬▬▬▬"),
             # Instructor Command
             ("Officers", "F40", "**Instructor Department Commander**"),
             ("Officers", "F33", "**Instructor Department Executive**"),
@@ -43,7 +43,7 @@ class StaffRatingCog(commands.Cog):
             ("Officers", "F23", "**Instructor Department Sergeant**"),
 
             # Section header
-            ("header", "▬▬▬▬▬ Coruscant Guard Advanced Recon Commando Command ▬▬▬▬▬"),
+            ("header", "▬▬▬▬▬ Advanced Recon Commando Command ▬▬▬▬▬"),
             # ARC
             ("Officers", "F39", "**ARC Company Commander**"),
             ("Officers", "F34", "**ARC Company Executive**"),
@@ -51,7 +51,7 @@ class StaffRatingCog(commands.Cog):
             ("Officers", "F25", "**ARC Company Sergeant**"),
 
             # Section header
-            ("header", "▬▬▬▬▬ Coruscant Guard Hound Company Command ▬▬▬▬▬"),
+            ("header", "▬▬▬▬▬ Hound Company Command ▬▬▬▬▬"),
             # Hound Company
             ("Officers", "F41", "**Hound Company Commander**"),
             ("Officers", "F30", "**Hound Company Executive**"),
@@ -60,7 +60,7 @@ class StaffRatingCog(commands.Cog):
             ("Officers", "F14", "**Hound Company Sergeant**"),
 
             # Section header
-            ("header", "▬▬▬▬▬ Coruscant Guard Riot Company Command ▬▬▬▬▬"),
+            ("header", "▬▬▬▬▬ Riot Company Command ▬▬▬▬▬"),
             # Riot Company
             ("Officers", "F42", "**Riot Company Commander**"),
             ("Officers", "F31", "**Riot Company Executive**"),
@@ -69,7 +69,7 @@ class StaffRatingCog(commands.Cog):
             ("Officers", "F17", "**Riot Company Sergeant**"),
 
             # Section header
-            ("header", "▬▬▬▬▬ Coruscant Guard Shock Company Command ▬▬▬▬▬"),
+            ("header", "▬▬▬▬▬ Shock Company Command ▬▬▬▬▬"),
             # Shock Company
             ("Officers", "F43", "**Shock Company Commander**"),
             ("Officers", "F32", "**Shock Company Executive**"),
