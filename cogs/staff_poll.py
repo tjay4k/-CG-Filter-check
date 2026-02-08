@@ -35,12 +35,20 @@ class StaffRatingCog(commands.Cog):
 
             # Section header
             ("header", "▬▬▬▬▬ Coruscant Guard Instructor Command ▬▬▬▬▬"),
-            # Instructor Command (from Officers sheet)
+            # Instructor Command
             ("Officers", "F40", "**Instructor Department Commander**"),
             ("Officers", "F33", "**Instructor Department Executive**"),
             ("Officers", "F21", "**Instructor Department Lead Sergeant**"),
             ("Officers", "F22", "**Instructor Department Sergeant**"),
             ("Officers", "F23", "**Instructor Department Sergeant**"),
+
+            # Section header
+            ("header", "▬▬▬▬▬ Coruscant Guard Advanced Recon Commando Command ▬▬▬▬▬"),
+            # ARC
+            ("Officers", "F39", "**ARC Company Commander**"),
+            ("Officers", "F34", "**ARC Company Executive**"),
+            ("Officers", "F24", "**ARC Company Sergeant**"),
+            ("Officers", "F25", "**ARC Company Sergeant**"),
 
             # Section header
             ("header", "▬▬▬▬▬ Coruscant Guard Hound Company Command ▬▬▬▬▬"),
