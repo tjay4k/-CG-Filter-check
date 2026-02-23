@@ -196,6 +196,10 @@ class StaffRatingCog(commands.Cog):
         await interaction.response.defer(ephemeral=True)
 
         try:
+            self.setup_sheets_client()
+            if not self.client:
+                logger.error("Sheets client is None, cannot post rating")
+                return
             # Get the rating channel for this server
             channel_id = self.get_rating_channel(interaction.guild_id)
             if not channel_id:
@@ -356,7 +360,7 @@ Your input helps us grow and improve our training environment, so we truly appre
     async def auto_post_rating(self):
         """Automatically post staff rating every Sunday"""
         # Check if today is Sunday (weekday 6)
-        if datetime.now().weekday() != 6:
+        if datetime.utcnow().weekday() != 6:
             return
 
         logger.info("Auto-posting staff rating...")
@@ -407,6 +411,10 @@ Your input helps us grow and improve our training environment, so we truly appre
     async def _post_rating_to_channel(self, channel: discord.TextChannel, guild: discord.Guild):
         """Helper method to post rating to a specific channel"""
         try:
+            self.setup_sheets_client()
+            if not self.client:
+                logger.error("Sheets client is None, cannot post rating")
+                return
             # Get spreadsheet URL from config
             sheet_url = config.STAFF_RATING.get('spreadsheet_url')
             if not sheet_url:
