@@ -80,8 +80,8 @@ bot_management:
 invite:
   # Target server to generate invites for
   target:
-    guild_id: 1269671417192910860
-    channel_id: 1352349414546604133
+    guild_id: 1478215626190229635
+    channel_id: 1478215627343663155
 
   # Servers where invite panel/commands work
   control_servers:
@@ -122,7 +122,7 @@ staff_rating:
       auto_post: false
 
     1269671417192910860: # [TGR] Coruscant Guard
-      rating_channel_id: 1271643356367294535 # Channel where rating posts
+      rating_channel_id: 1478465367612330095 # Channel where rating posts
       auto_post: true
 
   # Roles allowed to use the command
