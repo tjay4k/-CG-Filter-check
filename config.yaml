@@ -107,7 +107,7 @@ invite:
 staff_rating:
   # Google Sheets configuration
   spreadsheet:
-    url: "https://docs.google.com/spreadsheets/d/1sa5dVg2kn5Vtx4r6oTPTZxXw2PXTXJZrqb8Q8sxtUCc/edit?usp=sharing"
+    url: "https://docs.google.com/spreadsheets/d/1MbSbpahob2sLtwrJOgZzoiI1NCVQJYS4QE_tbh8QBTc/edit?usp=sharing"
     credentials_file: "credentials.json"
 
     # Sheet names
@@ -121,7 +121,7 @@ staff_rating:
       rating_channel_id: 1447690354320081157 # Channel where rating posts
       auto_post: false
 
-    1269671417192910860: # [TGR] Coruscant Guard
+    1478215626190229635: # [TGR] Coruscant Guard
       rating_channel_id: 1478465367612330095 # Channel where rating posts
       auto_post: true
 
