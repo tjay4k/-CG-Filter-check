@@ -159,7 +159,7 @@ class InviteButton(discord.ui.View):
                     f"• Join the Coruscant Guard Discord Server → {invite.url}\n"
                     f"• & Fill out the verification format in https://discord.com/channels/1269671417192910860/1352349414546604133\n"
                     f"• & Change your server name to [TRN] | username | timezone\n"
-                    f"• Join the Republic Security Forces Discord → https://discord.gg/UTvv6bg7Ws\n"
+                    f"• Join the Republic Security Forces Discord → https://discord.gg/WfenhZ7P\n"
                     f"• & Fill out the verification format in https://discord.com/channels/1343041443316502590/1343044438213001307\n"
                     f"• & Change your server name to [TRN] | username | timezone\n"
                     f"• Leave the PEACEKEEPER ACADEMY Discord\n"
