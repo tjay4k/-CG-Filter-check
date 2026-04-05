@@ -86,14 +86,14 @@ invite:
   # Servers where invite panel/commands work
   control_servers:
     - 1309981030790463529 # Blob Development
-    - 1322753191749615626 # [TGR] PEACEKEEPER ACADEMY
+    - 1489859648222662711 # [TGR] PEACEKEEPER ACADEMY
 
   # Role required to request an invite
-  required_role_id: 1363491917282676836 # @Trainee
+  required_role_id: 1489859648252149950 # @Trainee
 
   # Admin roles for management commands
   admin_roles:
-    - 1403468054150643814 # @▬▬▬▬▬Academy Directorate▬▬▬▬▬
+    - 1489859648277450810 # @▬▬▬▬▬Academy Directorate▬▬▬▬▬
 
   # Webhook for logging invite requests
   log_webhook_url: "https://discord.com/api/webhooks/1445173947367948601/InhWvggtcgJTzbJOEympACCMjzHl19WoQLrATXKGm25D01XZWdfObtPnDqunE53nKtKV"
