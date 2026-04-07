@@ -21,7 +21,7 @@ general:
 filter_check:
   # Servers where filter check can be used (empty = all servers)
   allowed_servers:
-    - 1322753191749615626 # [TGR] PEACEKEEPER ACADEMY
+    - 1489859648222662711 # [TGR] PEACEKEEPER ACADEMY
     - 1309981030790463529 # Blob Development
 
   # Roles allowed to use /check command (empty = everyone)
@@ -29,7 +29,7 @@ filter_check:
 
   # Channels where results are posted
   result_channels:
-    1322753191749615626: 1383949901091700808 # [TGR] PEACEKEEPER ACADEMY
+    1489859648222662711: 1489859648801476704 # [TGR] PEACEKEEPER ACADEMY
     1309981030790463529: 1417970716636086312 # Blob Development
 
   # Roblox group configuration
